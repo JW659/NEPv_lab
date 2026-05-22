@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEPv Interactive Exploration Laboratory</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>NEPv Lab</h2>
+                <p>Eigenvalue Exploration</p>
+            </div>
+            <ul class="nav-links">
+                <li class="nav-item active" data-target="page1">
+                    <span class="nav-num">01</span>
+                    <span class="nav-text">Linear Framework (SEP)</span>
+                </li>
+                <li class="nav-item" data-target="page2">
+                    <span class="nav-num">02</span>
+                    <span class="nav-text">Nonlinear Adaptation (NEPv)</span>
+                </li>
+                <li class="nav-item" data-target="page3">
+                    <span class="nav-num">03</span>
+                    <span class="nav-text">Real-World Frontier</span>
+                </li>
+            </ul>
+            <div class="sidebar-footer">
+                <p>v1.0.0 | Built with Pure JS</p>
+            </div>
+        </nav>
+
+        <main class="content-viewport">
+            
+            <section id="page1" class="page-section active">
+                <div class="page-header">
+                    <h1>Level 1: Standard Eigenvalue Problem (SEP)</h1>
+                    <p class="subtitle">Visualizing space transformation via the classic fixed Fibonacci Matrix</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="control-card">
+                        <h3>Classic Rabbit Model</h3>
+                        <p>In 1202, Fibonacci introduced an idealized model of rabbit population growth. He assumed that every pair of rabbits matures in one month and then produces another pair every month thereafter.</p>
+                        
+                        <div class="math-box">
+                            $$ \begin{bmatrix} R_{n+1} \\ R_{n} \end{bmatrix} = \begin{bmatrix} 1 & 1 \\ 1 & 0 \end{bmatrix} \begin{bmatrix} R_n \\ R_{n-1} \end{bmatrix} $$
+                        </div>
+
+                        <h4>How do we know the total number of rabbits after \( n \) months?</h4>
+                        <p> We can express this by raising the transition matrix \( A \) to the \( n \)-th power:</p>
+                        <div class="math-box">
+                            $$ \begin{bmatrix} R_{n} \\ R_{n-1} \end{bmatrix} = A^n \begin{bmatrix} R_1 \\ R_0 \end{bmatrix} $$
+                        </div>
+
+                        <h4>How to calculate power of a matrix? </h4>
+                        <p>We find the <strong>Eigenvalues (\( \lambda \))</strong> and <strong>Eigenvectors (\( \mathbf{v} \))</strong> to diagonalize the matrix: \( A = P \Lambda P^{-1} \). This makes exponentiation trivial, as we only need to power the diagonal eigenvalues:</p>
+                        <div class="math-box">
+                            $$ A^n = P \begin{bmatrix} \lambda_1^n & 0 \\ 0 & \lambda_2^n \end{bmatrix} P^{-1} $$
+                        </div>
+                        
+                        <h4>Finding the E-values and E-vectors of A</h4>
+                        <div class="instructions">
+                            <h4></h4>
+                            <h4>How to Interact:</h4>
+                            <ul>
+                                <li>Input the <strong>coordinates</strong> of the <strong>Blue Vector</strong></li>
+                                <li>Click the <strong>Transform button</strong> to transform the vector space and observe <strong>how the blue vector changes</strong></li>
+                                <li>Notice that when the input vector is the <strong>Eigenvectors (1.618,1) and (-0.618,1)</strong> it only stretches but doesn't rotate when we transform the vector space with matrix A</li>
+                            </ul>
+                        </div>
+
+                        <div class="status-box">
+                            <span class="status-label">Status:</span>
+                            <span id="sep-status" class="status-value searching">Searching for Eigenvector...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="right-column">
+                         <div class="visualization-card" style="flex-direction: column; gap: 15px;">
+                            <canvas id="sepCanvas" width="550" height="550"></canvas>
+                            
+                            <div class="vector-control-bar" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 5px; border-top: 1px solid var(--border-color);">
+                                <div class="input-group" style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                                    <span><strong>Input Vector \(\mathbf{v}_0\):</strong></span>
+                                    <label>X:</label>
+                                    <input type="number" id="vec-x" value="1.0" step="0.5" style="width: 55px; padding: 5px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;">
+                                    <label>Y:</label>
+                                    <input type="number" id="vec-y" value="1.0" step="0.5" style="width: 55px; padding: 5px; border: 1px solid var(--border-color); border-radius: 6px; font-family: monospace;">
+                                </div>
+                                <div class="btn-group" style="display: flex; gap: 10px;">
+                                    <button id="trans-btn" style="background-color: var(--accent-linear); color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer;">Transform (A·v)</button>
+                                    <button id="reset-btn" style="background-color: #e53e3e; color: white; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; cursor: pointer;">Reset Space</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="calculator-card">
+                            <h3>Analytical Solution & Derivation</h3>
+                            <p>algebraic process to find the invariant trajectories (Eigenvectors) of the linear system, leading to Binet's explicit formula.</p>
+                            
+                            <div class="math-box">
+                                $$ 
+                                \begin{aligned}
+                                \det(A - \lambda I) = 0 \implies \lambda^2 - \lambda - 1 = 0 \\
+                                \lambda_1 = \frac{1+\sqrt{5}}{2}, \quad \lambda_2 = \frac{1-\sqrt{5}}{2} \\
+                                \mathbf{v}_1 = \begin{bmatrix} \lambda_1 \\ 1 \end{bmatrix}, \quad \mathbf{v}_2 = \begin{bmatrix} \lambda_2 \\ 1 \end{bmatrix} \\
+                                P = \begin{bmatrix} \mathbf{v}_1 & \mathbf{v}_2 \end{bmatrix} = \begin{bmatrix} \frac{1+\sqrt{5}}{2} & \frac{1-\sqrt{5}}{2} \\ 1 & 1 \end{bmatrix}
+                                \end{aligned}
+                                $$
+                                <p>Binet's Formula: </p>
+                                $$ R_n = \frac{1}{\sqrt{5}} \left[ \left(\frac{1+\sqrt{5}}{2}\right)^n - \left(\frac{1-\sqrt{5}}{2}\right)^n \right] $$
+                            </div>
+
+                                
+                      
+                            <div class="calc-interface">
+                                <label for="month-input"><strong>Target Month (\( n \)):</strong></label>
+                                <input type="number" id="month-input" value="12" min="1" max="1000">
+                                <button id="calc-btn">Calculate Formula</button>
+                            </div>
+                            
+                            <div class="calc-result-box">
+                                <span class="result-label">Total Rabbits:</span>
+                                <span id="rabbit-count" class="result-number">144</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <section id="page2" class="page-section">
+                <div class="page-header">
+                    <h1>Level 2: Eigenvector-Dependent Nonlinearity (NEPv)</h1>
+                    <p class="subtitle">Exploring systems where state vectors dynamically morph the environment matrix</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                   <div class="control-card">
+                        <h3>The Eco-dynamic Rabbit problem </h3>
+                        <p>In the real world, ecosystems are bounded. Assume adult rabbits consume more resources. The higher the ratio of adults \(x\), the harsher the environment becomes, dynamically suppressing the fertility rate.</p>
+                        <p>We define the population structure vector as:</p>
+
+                        <div class="math-box">
+                            $$ \mathbf{v} = \begin{bmatrix} x \\ y \end{bmatrix} $$
+                        </div>
+
+                        <p>where \(x\) represents <strong>the proportion of adults</strong> and \(y\) represents the <strong>proportion of baby rabbit</strong>. Because these two variables describe the internal components of a single unified population, <strong>\(x + y = 1\)</strong>, \(x>0\), \(y>0\).</p>
+
+                        
+                        <p>Our transition matrix \(H\) now reacts directly to the internal structure of the state vector v.
+
+                        <div class="math-box">
+                            $$ H(\mathbf{v}) = \begin{bmatrix} 0.8 & 1.5 e^{-\alpha x} \\ 1 & 0 \end{bmatrix} $$
+                        </div>
+
+                        <h4>The Core Objective</h4>
+                        <p>We ask the question: Under this strict capacity constraint, what is <strong>the ultimate stable demographic structure v</strong>, and what is <strong>the intrinsic growth potential \( \lambda \)</strong> of that specific structure?</p>
+                        
+                        <p>This forms a pure <strong>Nonlinear Eigenvalue Problem (NEPv)</strong>. Unlike SEP, the eigenvalue \( \lambda \) is an unknown variable we must discover, born from the system's own self-balancing act:</p>
+                        
+                        <div class="math-box">
+                            $$ H(\mathbf{v})\mathbf{v} = \lambda \mathbf{v}, \quad \text{subject to } x+y = 1 $$
+                        </div>
+
+                        <h4>Solving via Self-Consistent Field (SCF)</h4>
+                        <p>Because the matrix mutates based on the vector it is trying to multiply, solving it algebraically may be tedious or impossible. We must use numerical algorithms:</p>
+                        <ol style="margin-left: 20px; margin-bottom: 15px; font-size: 13px; color: var(--text-secondary);">
+                            <li><strong>Guess</strong> an initial normalized demographic vector \(\mathbf{v}_0\) on the line \(y=1-x\).</li>
+                            <li><strong>Construct</strong> the frozen environment matrix \(H(\mathbf{v}_0\)).</li>
+                            <li><strong>Solve</strong> for its dominant eigenvector and <strong>re-normalize</strong> it back on the line to get \(\mathbf{v}_{1}\).</li>
+                            <li><strong>Iterate</strong> until the input structure precisely generates an environment that preserves itself.</li>
+                        </ol>
+
+                        <div class="instructions">
+                            <h4>How to Interact:</h4>
+                            <ul>
+                                <li><strong>Explore:</strong> Drag the vector along the <strong>Simplex Line \(x+y=1\)</strong>. Notice how the space warping (matrix environment) dynamically changes based on coordinate shifts.</li>
+                                <li><strong>Apply SCF algorithm:</strong> Click "reset" and "step iteration" to watch the blue vector converge to the self-consistent equilibrium.</li>
+                            </ul>
+                        </div>
+
+                        <div class="status-box">
+                            <span class="status-label">Status:</span>
+                            <span id="nepv-status" class="status-value searching">Waiting for SCF Initialization...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="right-column">
+                        
+                        <div class="visualization-card" style="flex-direction: column; gap: 15px; padding: 20px;">
+                            <canvas id="nepvCanvas" width="550" height="380" style="background-color: #ffffff; border-radius: 8px; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); border: 1px solid var(--border-color); cursor: crosshair;"></canvas>
+                            
+                            <div class="dynamic-panel" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px; background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; font-family: monospace; font-size: 14px;">
+                                
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="color: #3182ce; font-weight: bold; margin-bottom: 8px;">Input (\(\mathbf{v}_n\))</div>
+                                    <div>[<span id="dyn-vx">0.500</span>, <span id="dyn-vy">0.500</span>]</div>
+                                </div>
+                                
+                                <div style="flex: 1.5; display: flex; flex-direction: column; align-items: center; border-left: 1px dashed var(--border-color); border-right: 1px dashed var(--border-color); padding: 0 10px;">
+                                    <div style="color: var(--text-secondary); font-weight: bold; margin-bottom: 8px;">Environment \(H(\mathbf{v}_n)\)</div>
+                                    <div style="display: inline-flex; align-items: stretch;">
+                                        <div style="border: 2px solid #718096; border-right: none; width: 8px; border-radius: 4px 0 0 4px;"></div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; padding: 4px 12px; text-align: right;">
+                                            <span>0.800</span>
+                                            <span id="dyn-h-val" style="color: #dd6b20; font-weight: bold;">0.000</span>
+                                            <span>1.000</span>
+                                            <span>0.000</span>
+                                        </div>
+                                        <div style="border: 2px solid #718096; border-left: none; width: 8px; border-radius: 0 4px 4px 0;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div style="flex: 1; text-align: center;">
+                                    <div style="color: #e53e3e; font-weight: bold; margin-bottom: 8px;">Output (\(\mathbf{v}_{n+1}\))</div>
+                                    <div>[<span id="dyn-ux">0.000</span>, <span id="dyn-uy">0.000</span>]</div>
+                                    <div style="margin-top: 6px; color: #38a169; font-weight: bold;">\(\lambda\) = <span id="dyn-lambda">0.000</span></div>
+                                </div>
+
+                            </div>
+                        </div>
+                        
+                        <div class="calculator-card" style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+                            
+                            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 15px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 8px;">
+                                <label for="alpha-slider" style="font-weight: 600; color: var(--text-primary);">Harshness Penalty (\(\alpha\)):</label>
+                                <input type="range" id="alpha-slider" min="0" max="10" step="0.1" value="5.0" style="flex: 1; margin: 0 20px; cursor: pointer;">
+                                <span id="alpha-display" style="font-family: monospace; font-weight: bold; color: var(--accent-warning); font-size: 16px;">5.0</span>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <h3 style="margin: 0; color: var(--text-primary);">Self-Consistent Field Process</h3>
+                                <div class="btn-group" style="display: flex; gap: 10px;">
+                                    <button id="reset-scf-btn" style="background-color: #e2e8f0; color: var(--text-primary); border: none; padding: 8px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">Reset (0.5, 0.5)</button>
+                                    <button id="step-scf-btn" style="background-color: var(--accent-warning); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; box-shadow: 0 2px 5px rgba(221,107,32,0.3);">Step Iteration</button>
+                                </div>
+                            </div>
+                            
+                            <div id="scf-log-container" style="height: 160px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; background: #fafbfc; padding: 10px; font-family: monospace; font-size: 13px;">
+                                <div id="scf-log-placeholder" style="color: var(--text-secondary); font-style: italic; text-align: center; margin-top: 50px;">Click "Step Iteration" to trace the mathematical convergence...</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <section id="page3" class="page-section">
+                <div class="page-header">
+                    <h1>Level 3: The Real-World Frontier</h1>
+                    <p class="subtitle">Where NEPv models foundational laws of nature and complex networks</p>
+                </div>
+                
+                <div class="dashboard-grid">
+                    <div class="control-card" style="height: fit-content;">
+                        <h3>Beyond the Toy Models</h3>
+                        <p>The "Eco-dynamic Rabbit Problem" demonstrated the core mechanics of the Nonlinear Eigenvalue Problem (NEPv) and the Self-Consistent Field (SCF) iteration.</p>
+                        <p>However, the true power of NEPv lies in high-dimensional spaces. Whenever a system exhibits <strong>State-Dependent Feedback</strong>—where the "rules" of the environment are dictated by the "state" of the subjects living within it.</p>
+                        <p>To the right are two distinct fields where NEPv modeling is used to solve complex problems.</p>
+                    </div>
+                    
+                    <div class="right-column">
+                        
+                        <div class="calculator-card" style="margin-bottom: 20px;">
+                            <h3 style="color: var(--accent-linear); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">1. Quantum Mechanics & Material Science</h3>
+                            <p><strong>Context:</strong> Density Functional Theory (DFT) and the Kohn-Sham Equations.</p>
+                            <p>In quantum physics, when simulating advanced materials (such as NV color centers in diamond for quantum sensing), multiple electrons interact with each other. The potential energy field \(V(\psi\)) experienced by any single electron depends entirely on the collective wave function \(\psi\) of all electrons combined.</p>
+                            
+                            <div class="math-box" style="margin: 15px 0;">
+                                $$ \left[ -\frac{\hbar^2}{2m}\nabla^2 + V_{ext}(\mathbf{r}) + \int \frac{|\psi(\mathbf{r'})|^2}{|\mathbf{r} - \mathbf{r'}|} d\mathbf{r'} \right] \psi(\mathbf{r}) = E \psi(\mathbf{r}) $$
+                            </div>
+                            
+                            <p><strong>The NEPv Translation:</strong> This is a continuous NEPv, famously known as the Gross-Pitaevskii or Kohn-Sham equation. The Hamiltonian matrix \(H(\psi\)) mutates based on the spatial density \(\lvert\psi\rvert^2\). The normalization constraint \(\int \lvert\psi\rvert^2 d\mathbf{r} = 1\) ensures the particle exists, and the resulting eigenvalue \(E\) is the absolute Ground-State Energy of the quantum system.</p>
+                        </div>
+
+                        <div class="calculator-card" style="margin-bottom: 20px;">
+                            <h3 style="color: var(--accent-warning); border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">2. Data Science & Graph Clustering</h3>
+                            <p><strong>Context:</strong> Nonlinear PageRank and Multi-Modal Network Integration.</p>
+                            <p>Standard PageRank is a linear SEP: \(Px = \lambda x\), where transition probabilities are static. However, in modern complex networks—like integrating multi-omics biological data or modeling traffic congestion—the "attractiveness" or "weight" of a node changes dynamically based on the amount of traffic \(x\) it currently holds.</p>
+                            
+                            <div class="math-box" style="margin: 15px 0;">
+                                $$ \sum_{j} P_{ij}(x_j) x_j = \lambda x_i $$
+                            </div>
+                            
+                            <p><strong>The NEPv Translation:</strong> In clustering algorithms, if a central hub becomes oversaturated, it might deploy a penalty function (similar to our overcrowding penalty \(\alpha\)), redirecting flows to peripheral nodes. Solving this NEPv via SCF yields the true dynamic centrality vector, revealing the hidden hierarchical structure of highly nonlinear, self-regulating datasets.</p>
+                        </div>
+
+                        <div class="visualization-card" style="display: block; background-color: #fafbfc; border-left: 4px solid #718096; border-radius: 4px; padding: 20px;">
+                            <h3 style="margin-top: 0; margin-bottom: 15px; color: var(--text-primary); font-size: 18px;">References</h3>
+                            <ul style="font-size: 13px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 0; list-style-type: none; padding-left: 0;">
+                                <li style="margin-bottom: 12px;">
+                                    [1] N. Truhar and R.-C. Li, "On an eigenvector-dependent nonlinear eigenvalue problem from the perspective of relative perturbation theory," <i>Journal of Computational and Applied Mathematics</i>, vol. 394, p. 113596, Oct. 2021. [Online]. Available: <a href="https://www.sciencedirect.com/science/article/pii/S0377042721002168" target="_blank" style="color: var(--accent-linear); text-decoration: none;">ScienceDirect</a>
+                                </li>
+                                <li style="margin-bottom: 12px;">
+                                    [2] eMathHelp, "Eigenvalue and Eigenvector Calculator," 2024. [Online]. Available: <a href="https://www.emathhelp.net/calculators/linear-algebra/eigenvalue-and-eigenvector-calculator/?i=%5B%5B0.8%2C1.409%5D%2C%5B1%2C0%5D%5D" target="_blank" style="color: var(--accent-linear); text-decoration: none;">eMathHelp.net</a>
+                                </li>
+                                <li>
+                                    [3] 3Blue1Brown, "Change of basis | Chapter 13, Essence of linear algebra," YouTube, 2016. [Online]. Available: <a href="https://www.youtube.com/watch?v=P2LTAUO1TdA" target="_blank" style="color: var(--accent-linear); text-decoration: none;">YouTube</a>
+                                </li>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
