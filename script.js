@@ -20,7 +20,6 @@ function initNavigation() {
             navItems.forEach(nav => nav.classList.remove("active"));
             pageSections.forEach(page => page.classList.remove("active"));
 
-            // Inject active metrics to targeted block
             item.classList.add("active");
             const targetPageId = item.getAttribute("data-target");
             document.getElementById(targetPageId).classList.add("active");
@@ -37,44 +36,34 @@ function initBinetCalculator() {
     const calcBtn = document.getElementById('calc-btn');
     const rabbitCount = document.getElementById('rabbit-count');
 
-    // 确保元素存在，防止页面加载报错
     if (!monthInput || !calcBtn || !rabbitCount) return;
 
-    // 核心计算与更新逻辑
     function calculateRabbits() {
         const n = parseInt(monthInput.value, 10);
         
-        // 输入合法性校验
+        // input check
         if (isNaN(n) || n < 1) {
             rabbitCount.innerText = "N/A";
             return;
         }
 
-        // Binet公式中的关键常量
+        // Binet equation
         const sqrt5 = Math.sqrt(5);
         const lambda1 = (1 + sqrt5) / 2; // 黄金分割比例 (约 1.618)
         const lambda2 = (1 - sqrt5) / 2; // (约 -0.618)
 
-        // 核心公式: Rn = 1/√5 * (λ1^n - λ2^n)
         const result = (Math.pow(lambda1, n) - Math.pow(lambda2, n)) / sqrt5;
 
-        // JS浮点运算会产生精度溢出 (如144.00000000000003)，必须使用 Math.round() 规整
+        // rounding and display
         const finalCount = Math.round(result);
 
-        // 更新UI，toLocaleString()可以自动给大数字加千分位逗号 (如 10,946)
         rabbitCount.innerText = finalCount.toLocaleString();
     }
 
-    // 绑定点击事件
+    // click event 
     calcBtn.addEventListener('click', calculateRabbits);
-
-    // 锦上添花：允许用户在输入框内按 Enter 键触发计算
-    monthInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            calculateRabbits();
-        }
-    });
 }
+
 // ==========================================
 // 3. Level 1: Standard Eigenvalue Engine (SEP)
 // ==========================================
@@ -85,33 +74,33 @@ function initLevel1Canvas() {
     const ctx = canvas.getContext('2d');
     const statusVal = document.getElementById('sep-status');
     
-    // 获取交互控件
+    // Interactions
     const inputX = document.getElementById('vec-x');
     const inputY = document.getElementById('vec-y');
     const transBtn = document.getElementById('trans-btn');
     const resetBtn = document.getElementById('reset-btn');
 
-    // 坐标系物理参数
+    // Coordinates setup
     const originX = canvas.width / 2;
     const originY = canvas.height / 2;
     const scale = 50; 
 
-    // 核心数学配置：经典的斐波那契转移矩阵 A
+    // core matrix
     const matrixA = [
         [1, 1],
         [1, 0]
     ];
 
-    // 系统动态状态变量
-    let transformCount = 0; // 记录变换了多少次 (矩阵的幂次 n)
+    // number of transistions
+    let transformCount = 0; 
     
-    // 当前空间的累计变换矩阵 (初始化为单位矩阵 Identity Matrix)
+    // matrix after (several) transformation
     let spaceMatrix = [
         [1, 0],
         [0, 1]
     ];
 
-    // 矩阵乘法辅助函数: C = M1 * M2
+    // Matrix multiplication function
     function multiplyMatrices(m1, m2) {
         return [
             [
@@ -125,7 +114,7 @@ function initLevel1Canvas() {
         ];
     }
 
-    // 坐标转换：数学坐标 -> 屏幕像素坐标
+    // coordinates shift
     function toScreen(x, y) {
         return {
             sx: originX + x * scale,
@@ -133,7 +122,7 @@ function initLevel1Canvas() {
         };
     }
 
-    // 核心物理映射：应用当前的累计变换矩阵作用于任意点 (x, y)
+    // mapping of vector space
     function transformPoint(x, y, matrix) {
         return {
             tx: matrix[0][0] * x + matrix[0][1] * y,
@@ -141,7 +130,7 @@ function initLevel1Canvas() {
         };
     }
 
-    // 绘制带箭头的向量
+    // vector drawing
     function drawArrow(fromX, fromY, toX, toY, color, width) {
         const p0 = toScreen(fromX, fromY);
         const p1 = toScreen(toX, toY);
@@ -159,11 +148,11 @@ function initLevel1Canvas() {
         ctx.stroke();
     }
 
-    // 核心渲染引擎
+    // rendor
     function renderEngine() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. 绘制静态背景参考网格 (淡灰色直角坐标网格)
+        // 1.static coordinates 
         ctx.strokeStyle = '#e2e8f0';
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -176,36 +165,36 @@ function initLevel1Canvas() {
         }
         ctx.stroke();
 
-        // 2. 绘制经 spaceMatrix 变形后的网格 (3B1B 风格的浅蓝色平行四边形网格)
+        // 2. transformed coordinates
         ctx.strokeStyle = 'rgba(49, 130, 206, 0.2)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         for (let i = -5; i <= 5; i++) {
-            // 变形后的纵向网格线
+            // vertical lines
             let t1 = transformPoint(i, -5, spaceMatrix); let t2 = transformPoint(i, 5, spaceMatrix);
             let s1 = toScreen(t1.tx, t1.ty); let s2 = toScreen(t2.tx, t2.ty);
             ctx.moveTo(s1.sx, s1.sy); ctx.lineTo(s2.sx, s2.sy);
 
-            // 变形后的横向网格线
+            // horizontal lines
             let t3 = transformPoint(-5, i, spaceMatrix); let t4 = transformPoint(5, i, spaceMatrix);
             let s3 = toScreen(t3.tx, t3.ty); let s4 = toScreen(t4.tx, t4.ty);
             ctx.moveTo(s3.sx, s3.sy); ctx.lineTo(s4.sx, s4.sy);
         }
         ctx.stroke();
 
-        // 3. 绘制基础坐标轴线
+        // 3. axis drawing
         drawArrow(-5, 0, 5, 0, 'rgba(74, 85, 104, 0.3)', 1.5);
         drawArrow(0, -5, 0, 5, 'rgba(74, 85, 104, 0.3)', 1.5);
 
-        // 4. 获取用户输入的初始向量 v0
+        // 4.gain initial v0 input
         const v0_x = parseFloat(inputX.value) || 0;
         const v0_y = parseFloat(inputY.value) || 0;
 
-        // 5. 计算经过当前累计矩阵变形后的向量 v_current = spaceMatrix * v0
+        // 5. calculate v_current = spaceMatrix * v0
         const vCurr = transformPoint(v0_x, v0_y, spaceMatrix);
 
-        // 6. 核心逻辑检测：检查用户输入的 v0 是否正好处在特征向量（黄金分割线）上
-        // 利用初始矩阵 A 与 v0 的叉乘检测共线：cross = x * (A*y) - y * (A*x)
+        // 6.Test whether v0 is near eigenvector 
+        // cross = x * (A*y) - y * (A*x)
         const vNext_from_A = {
             x: matrixA[0][0] * v0_x + matrixA[0][1] * v0_y,
             y: matrixA[1][0] * v0_x + matrixA[1][1] * v0_y
@@ -213,7 +202,7 @@ function initLevel1Canvas() {
         const crossProduct = v0_x * vNext_from_A.y - v0_y * vNext_from_A.x;
         const vLen = Math.sqrt(v0_x**2 + v0_y**2);
 
-        // 状态信息面板更新
+        // update information
         if (transformCount === 0) {
             if (vLen > 0.1 && Math.abs(crossProduct) < 0.05) {
                 statusVal.innerText = "✨ Invariant Trajectory! v0 is an Eigenvector.";
@@ -232,11 +221,11 @@ function initLevel1Canvas() {
             }
         }
 
-        // 7. 绘制被空间矩阵同步扭曲后的向量（显示为亮蓝色）
+        // 7. draw the remapped blue vector
         if (vLen > 0.01) {
             drawArrow(0, 0, vCurr.tx, vCurr.ty, '#3182ce', 3.5);
             
-            // 在向量末端画一个醒目的小几何圆点
+            // dot at the end of the blue vector
             const tip = toScreen(vCurr.tx, vCurr.ty);
             ctx.beginPath();
             ctx.arc(tip.sx, tip.sy, 5, 0, Math.PI * 2);
@@ -245,16 +234,16 @@ function initLevel1Canvas() {
         }
     }
 
-    // --- 按钮交互事件响应监听 ---
+    // interactions
 
-    // 变换按钮点击：让当前的整个空间矩阵乘以矩阵 A
+    // transform
     transBtn.addEventListener('click', () => {
         spaceMatrix = multiplyMatrices(matrixA, spaceMatrix);
         transformCount++;
         renderEngine();
     });
 
-    // 还原按钮点击：将矩阵恢复为单位矩阵，次数归零，并重置输入
+    // reset
     resetBtn.addEventListener('click', () => {
         spaceMatrix = [
             [1, 0],
@@ -266,11 +255,10 @@ function initLevel1Canvas() {
         renderEngine();
     });
 
-    // 当用户手动修改输入框的数字时，画布实时刷新
+    // input vector
     inputX.addEventListener('input', renderEngine);
     inputY.addEventListener('input', renderEngine);
 
-    // 首次运行，初始化执行绘图
     renderEngine();
 }
 
@@ -283,7 +271,7 @@ function initLevel2Canvas() {
     
     const ctx = canvas.getContext('2d');
     
-    // UI 控制元素
+    // UI
     const elVx = document.getElementById('dyn-vx');
     const elVy = document.getElementById('dyn-vy');
     const elHVal = document.getElementById('dyn-h-val');
@@ -298,12 +286,12 @@ function initLevel2Canvas() {
     const logContainer = document.getElementById('scf-log-container');
     const logPlaceholder = document.getElementById('scf-log-placeholder');
 
-    // 画布坐标系物理参数
+    // coordinates
     const scale = 300; 
     const originX = 60;  
     const originY = canvas.height - 40;
 
-    // SCF 系统状态
+    // SCF 
     let v_input = { x: 0.5, y: 0.5 };
     let scfStepCount = 0;
     let isDragging = false;
@@ -329,7 +317,7 @@ function initLevel2Canvas() {
         ctx.stroke();
     }
 
-    // 核心物理引擎
+    // Core engine
     function computeSystem(x) {
         const alpha = parseFloat(alphaSlider.value) || 5.0; 
         const h_val = 1.5 * Math.exp(-alpha * x);
@@ -342,16 +330,16 @@ function initLevel2Canvas() {
     function renderEngine() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // --- 画背景与坐标轴 ---
-        drawArrow(-0.1, 0, 1.2, 0, 'rgba(74, 85, 104, 0.3)', 2); // X轴
-        drawArrow(0, -0.1, 0, 1.2, 'rgba(74, 85, 104, 0.3)', 2); // Y轴
+        // background and axis
+        drawArrow(-0.1, 0, 1.2, 0, 'rgba(74, 85, 104, 0.3)', 2); // X
+        drawArrow(0, -0.1, 0, 1.2, 'rgba(74, 85, 104, 0.3)', 2); // Y
         
-        ctx.fillStyle = "#718096"; // 文字也改成深灰色
+        ctx.fillStyle = "#718096"; 
         ctx.font = "12px monospace";
         ctx.fillText("x (Adult Ratio)", toScreen(1.05, -0.1).sx, originY + 15);
         ctx.fillText("y (Youth Ratio)", originX - 45, toScreen(0, 1.1).sy);
 
-        // 画 x+y=1 的约束虚线
+        // draw x+y=1 constraint line
         ctx.beginPath();
         ctx.setLineDash([5, 5]);
         const pStart = toScreen(1, 0); const pEnd = toScreen(0, 1);
@@ -361,10 +349,10 @@ function initLevel2Canvas() {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // 计算当前系统
+        // compute current system
         const sys = computeSystem(v_input.x);
 
-        // 更新 UI 数据面板
+        // update UI
         elVx.innerText = v_input.x.toFixed(3);
         elVy.innerText = v_input.y.toFixed(3);
         elHVal.innerText = sys.h_val.toFixed(3);
@@ -372,13 +360,13 @@ function initLevel2Canvas() {
         elUy.innerText = sys.uy.toFixed(3);
         elLambda.innerText = sys.lambda.toFixed(3);
 
-        // 绘制红色输出向量（目标 Eigenvector）
+        // draw V1 red vector
         drawArrow(0, 0, sys.ux, sys.uy, '#e53e3e', 3);
         
-        // 绘制蓝色输入向量
+        // draw input V0 blue vector
         drawArrow(0, 0, v_input.x, v_input.y, '#3182ce', 4);
 
-        // 画把手
+        // draw handle
         const handle = toScreen(v_input.x, v_input.y);
         ctx.beginPath();
         ctx.arc(handle.sx, handle.sy, 8, 0, Math.PI * 2);
@@ -388,14 +376,13 @@ function initLevel2Canvas() {
         ctx.fill();
         ctx.stroke();
 
-        return sys; // 返回系统数据供日志使用
+        return sys; 
     }
 
-    // --- 日志系统 ---
     function addLogEntry(sys) {
         if (logPlaceholder) logPlaceholder.style.display = 'none';
         
-        // 检测是否收敛 (输入和输出的误差极小)
+        // test convergence
         const error = Math.abs(v_input.x - sys.ux);
         const isConverged = error < 0.001;
 
@@ -403,7 +390,7 @@ function initLevel2Canvas() {
         logRow.style.display = 'flex';
         logRow.style.borderBottom = '1px solid #e2e8f0';
         logRow.style.padding = '6px 0';
-        if (isConverged) logRow.style.backgroundColor = '#e6fffa'; // 收敛时给一个绿色高亮背景
+        if (isConverged) logRow.style.backgroundColor = '#e6fffa'; // background lightens
 
         logRow.innerHTML = `
             <span style="width: 35px; font-weight: bold; color: var(--text-primary);">#${scfStepCount}</span>
@@ -415,7 +402,7 @@ function initLevel2Canvas() {
         
         logContainer.appendChild(logRow);
         
-        // 如果收敛，追加一条成功信息
+        // if converged message
         if (isConverged) {
             const successRow = document.createElement('div');
             successRow.style.padding = '8px 0';
@@ -426,36 +413,36 @@ function initLevel2Canvas() {
             logContainer.appendChild(successRow);
         }
 
-        // 自动滚动到最新的一行
+  
         logContainer.scrollTop = logContainer.scrollHeight;
     }
 
-    // --- 按钮与交互事件 ---
+    // interactions
     
-    // SCF 单步迭代按钮
+    // SCF step
     stepBtn.addEventListener('click', () => {
         scfStepCount++;
-        const currentSys = renderEngine(); // 获取当前状态
-        addLogEntry(currentSys); // 写日志
+        const currentSys = renderEngine(); 
+        addLogEntry(currentSys); 
         
-        // 【核心动作】让蓝色向量跳到红色向量的位置，成为下一步的输入！
+        // output to input
         v_input.x = currentSys.ux;
         v_input.y = currentSys.uy;
         
-        renderEngine(); // 画出跳变后的新状态
+        renderEngine(); 
     });
 
-    // 重置按钮
+    // reset
     resetBtn.addEventListener('click', () => {
         v_input = { x: 0.5, y: 0.5 };
         scfStepCount = 0;
-        logContainer.innerHTML = ''; // 清空日志
+        logContainer.innerHTML = ''; 
         if (logPlaceholder) logContainer.appendChild(logPlaceholder);
         logPlaceholder.style.display = 'block';
         renderEngine();
     });
 
-    // 鼠标拖拽实时预览 (手动打破收敛)
+    // mouse drag
     canvas.addEventListener('mousedown', () => isDragging = true);
     canvas.addEventListener('mousemove', (e) => {
         if (!isDragging) return;
@@ -471,7 +458,7 @@ function initLevel2Canvas() {
     });
     window.addEventListener('mouseup', () => isDragging = false);
 
-    // Alpha 滑块改变
+    // Alpha block
     alphaSlider.addEventListener('input', (e) => {
         alphaDisplay.innerText = parseFloat(e.target.value).toFixed(1);
         renderEngine();
